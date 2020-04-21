@@ -32,7 +32,7 @@
         </el-table-column>
         <el-table-column label="操作" width="130px">
           <template slot-scope="scope">
-            <el-button size="mini" type="primary" icon="el-icon-edit"></el-button>
+            <el-button size="mini" type="primary" icon="el-icon-edit" @click="editPage(scope.row.goods_id)"></el-button>
             <el-button
               size="mini"
               type="danger"
@@ -85,7 +85,7 @@ export default {
         return this.$message.error('获取商品列表数据失败')
       }
       this.$message.success('获取商品列表数据成功')
-      console.log(data.data)
+      // console.log(data.data)
       this.goodlist = data.data.goods
       this.total = data.data.total
       // console.log(this.goodlist);
@@ -127,6 +127,12 @@ export default {
     },
     goAddPage(){
         this.$router.push('/goods/add')
+    },
+    editPage(id){
+      // 将要修改商品的ID保存到客户端sessionStorage中
+       window.sessionStorage.setItem('goodsId',id)
+        this.$router.push('/goods/edit')
+
     }
   }
 }

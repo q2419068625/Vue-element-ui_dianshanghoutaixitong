@@ -4,12 +4,12 @@
     <el-breadcrumb separator="/">
       <el-breadcrumb-item :to="{ path: '/home' }">首页</el-breadcrumb-item>
       <el-breadcrumb-item>商品管理</el-breadcrumb-item>
-      <el-breadcrumb-item>添加商品</el-breadcrumb-item>
+      <el-breadcrumb-item>修改商品</el-breadcrumb-item>
     </el-breadcrumb>
     <!-- 卡片视图区域 -->
     <el-card>
       <!-- 警告区域 -->
-      <el-alert title="添加商品信息" type="info" center show-icon :closable="false"></el-alert>
+      <el-alert title="修改商品信息" type="info" center show-icon :closable="false"></el-alert>
       <!-- 步骤区域 -->
       <el-steps :space="200" :active="activeIndex - 0" finish-status="success" align-center>
         <el-step title="基本信息"></el-step>
@@ -21,9 +21,9 @@
       </el-steps>
       <!-- tab栏区域 -->
       <el-form
-        :model="addForm"
-        :rules="addFormRules"
-        ref="addFormRef"
+        :model="editForm"
+        :rules="editFormRules"
+        ref="editFormRef"
         label-width="100px"
         label-position="top"
       >
@@ -35,20 +35,20 @@
         >
           <el-tab-pane label="基本信息" name="0">
             <el-form-item label="商品名称" prop="goods_name">
-              <el-input v-model="addForm.goods_name"></el-input>
+              <el-input v-model="editForm.goods_name"></el-input>
             </el-form-item>
             <el-form-item label="商品价格" prop="goods_price">
-              <el-input v-model="addForm.goods_price" type="number"></el-input>
+              <el-input v-model="editForm.goods_price" type="number"></el-input>
             </el-form-item>
             <el-form-item label="商品重量" prop="goods_weight">
-              <el-input v-model="addForm.goods_weight" type="number"></el-input>
+              <el-input v-model="editForm.goods_weight" type="number"></el-input>
             </el-form-item>
             <el-form-item label="商品数量" prop="goods_number">
-              <el-input v-model="addForm.goods_number" type="number"></el-input>
+              <el-input v-model="editForm.goods_number" type="number"></el-input>
             </el-form-item>
             <el-form-item label="商品分类" prop="goods_cat">
               <el-cascader
-                v-model="addForm.goods_cat"
+                v-model="editForm.goods_cat"
                 :options="catelist"
                 :props="{ expandTrigger: 'hover',label:cateProps.label,value:cateProps.value,children:cateProps.children}"
                 @change="handleChange"
@@ -89,9 +89,9 @@
           </el-tab-pane>
           <el-tab-pane label="商品内容" name="4">
             <!-- 富文本编辑器组件 -->
-            <quill-editor v-model="addForm.goods_introduce"></quill-editor>
-            <!-- 添加商品按钮 -->
-            <el-button type="primary" class="btnAdd" @click="add">添加商品</el-button>
+            <quill-editor v-model="editForm.goods_introduce"></quill-editor>
+            <!-- 修改商品按钮 -->
+            <el-button type="primary" class="btnEdit" @click="edit">修改商品</el-button>
           </el-tab-pane>
         </el-tabs>
       </el-form>
@@ -110,8 +110,8 @@ export default {
     return {
       //步骤条的索引
       activeIndex: '0',
-      //添加商品表单数据对象
-      addForm: {
+      //修改商品表单数据对象
+      editForm: {
         goods_name: '',
         goods_price: 0,
         goods_weight: 0,
@@ -125,8 +125,8 @@ export default {
         //商品的参数
         attrs: []
       },
-      //添加商品表单验证规则对象
-      addFormRules: {
+      //修改商品表单验证规则对象
+      editFormRules: {
         goods_name: [
           { required: true, message: '请输入商品名称', trigger: 'blur' }
         ],
@@ -167,6 +167,7 @@ export default {
   },
   created() {
     this.getCateList()
+    this.findGoods()
   },
   methods: {
     //获取所有商品分类数据
@@ -180,13 +181,13 @@ export default {
     },
     //级联选择器选中项变化，会触发这个函数
     handleChange() {
-      console.log(this.addForm.goods_cat)
-      if (this.addForm.goods_cat.length !== 3) {
-        this.addForm.goods_cat.length = []
+      // console.log(this.editForm.goods_cat)
+      if (this.editForm.goods_cat.length !== 3) {
+        this.editForm.goods_cat.length = []
       }
     },
     beforeTabLeave(activeName, oldActiveName) {
-      if (oldActiveName === '0' && this.addForm.goods_cat.length !== 3) {
+      if (oldActiveName === '0' && this.editForm.goods_cat.length !== 3) {
         this.$message.error('请选择商品分类')
         return false
       }
@@ -221,7 +222,6 @@ export default {
       this.manyTableData = data.data
       // console.log(this.manyTableData);
     },
-
     //获取静态属性列表
     async onlyCateGories() {
       const { data } = await this.$http.get(
@@ -248,28 +248,48 @@ export default {
       //1.获取将要删除的图片的临时路经
       const filePath = file.response.data.tmp_path
       //2.从pics数组中，找到这个图片对应的索引值
-      const i = this.addForm.pics.findIndex(x => x.pic === filePath)
+      const i = this.editForm.pics.findIndex(x => x.pic === filePath)
       //3.调用数组的splice方法，把图片信息对象，从pics数组中移除
-      this.addForm.pics.splice(i, 1)
-      // console.log(this.addForm);
+      this.editForm.pics.splice(i, 1)
+      // console.log(this.editForm);
     },
     //图片上传成功后
     handleSuccess(response) {
       //1.拼接得到一个图片信息对象
       const picInfo = { pic: response.data.tmp_path }
       //2.将图片信息对象，push到pics数组中
-      this.addForm.pics.push(picInfo)
-      // console.log(this.addForm);
+      this.editForm.pics.push(picInfo)
+      // console.log(this.editForm);
     },
-    //添加商品
-    add() {
-      // console.log(this.addForm);
-      this.$refs.addFormRef.validate(async valid => {
+    //查找商品
+    async findGoods() {
+      // console.log(id);
+      const goodsId = window.sessionStorage.getItem('goodsId')
+      // console.log(goodsId);
+      const { data } = await this.$http.get('goods/' + goodsId)
+      // console.log(data);
+
+      if (data.meta.status !== 200) {
+        return this.$message.error('获取商品数据失败')
+      }
+      data.data.goods_cat = data.data.goods_cat.split(',').map(Number)
+      //  newGoodsCat.map(item =>{
+      //     this.goods_cat.push(+item)
+      //  })
+      // console.log(daa.data);
+      // console.log(this.goods_cat);
+
+      this.editForm = data.data
+    },
+    //修改商品
+    edit() {
+      // console.log(this.editForm);
+      this.$refs.editFormRef.validate(async valid => {
         if (!valid) {
           return this.$message.error('请填写必要的表单项')
         }
-        //执行添加的业务逻辑
-        const form = _.cloneDeep(this.addForm)
+        //执行修改的业务逻辑
+        const form = _.cloneDeep(this.editForm)
         form.goods_cat = form.goods_cat.join(',')
 
         //处理动态参数
@@ -278,31 +298,33 @@ export default {
             attr_id: item.attr_id,
             attr_value: item.attr_vals.join(' ')
           }
-          this.addForm.attrs.push(newInfo)
+          this.editForm.attrs.push(newInfo)
         })
         //处理静态属性
         this.onlyTableData.forEach(item => {
           const newInfo = { attr_id: item.attr_id, attr_value: item.attr_vals }
-          this.addForm.attrs.push(newInfo)
+          this.editForm.attrs.push(newInfo)
         })
-        form.attrs = this.addForm.attrs
+        form.attrs = this.editForm.attrs
+        const goodsId = window.sessionStorage.getItem('goodsId')
         // console.log(form);
-        //发起请求添加商品
+        //发起请求修改商品
         //商品的名称，必须是唯一的
-        const { data } = await this.$http.post('goods', form)
-        if (data.meta.status !== 201) {
-          return this.$message.error('添加商品失败')
+        const { data } = await this.$http.put(`goods/${goodsId}`, form)
+        console.log(data)
+
+        if (data.meta.status !== 200) {
+          return this.$message.error('修改商品失败')
         }
-        this.$message.success('添加商品成功')
+        this.$message.success('修改商品成功')
         this.$router.push('/goods')
       })
     }
   },
   computed: {
     cateId() {
-      if (this.addForm.goods_cat.length === 3) {
-        return this.addForm.goods_cat[2]
-
+      if (this.editForm.goods_cat.length === 3) {
+        return this.editForm.goods_cat[2]
       }
       return null
     }
@@ -317,7 +339,7 @@ export default {
 .previewImg {
   width: 100%;
 }
-.btnAdd {
+.btnEdit {
   margin-top: 15px;
 }
 </style>
